@@ -1,0 +1,28 @@
+{
+    "name": "ishare-v2-server",
+    "version": "2.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "babel-node index.js",
+        "server": "nodemon --exec babel-node -- index.js",
+        "client": "npm run start --prefix ../ishare-v2-client",
+        "dev": "concurrently \"npm run server\" \"npm run client\""
+    },
+    "author": "Viet Tran",
+    "license": "ISC",
+    "dependencies": {
+        "apollo-server-express": "^2.16.1",
+        "axios": "^0.19.2",
+        "babel-cli": "^6.26.0",
+        "babel-preset-env": "^1.7.0",
+        "concurrently": "^5.3.0",
+        "dotenv": "^8.2.0",
+        "express": "^4.17.1",
+        "graphql": "^15.3.0",
+        "mongoose": "^5.9.29",
+        "nodemailer": "^6.4.11",
+        "yup": "^0.29.3"
+    }
+}
