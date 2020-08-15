@@ -18,10 +18,9 @@ export default gql`
             email: String!
             password: String!
             confirmPassword: String!
-            avatarId: String
-            avatarUrl: String
+            recaptcha: String!
         ): User!
-        login(email: String!, password: String!): User!
+        login(email: String!, password: String!, recaptcha: String!): User!
         loginFacebook(facebookId: String!, accessToken: String!): User!
         loginGoogle(googleId: String, idToken: String!): User!
     }

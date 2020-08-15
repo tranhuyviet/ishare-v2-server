@@ -11,15 +11,18 @@ const password = Yup.string()
 const confirmPassword = Yup.string()
     .required('Confirm Password cannot be empty')
     .oneOf([Yup.ref('password')], 'Password not match');
+const recaptcha = Yup.string().required('Recaptcha verification is required');
 
 export const signupSchema = Yup.object({
     name,
     email,
     password,
     confirmPassword,
+    recaptcha,
 });
 
 export const loginSchema = Yup.object({
     email,
     password,
+    recaptcha,
 });

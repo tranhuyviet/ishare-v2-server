@@ -3,6 +3,7 @@ import { signupSchema, loginSchema } from '../schemas';
 import { UserInputError } from 'apollo-server-express';
 import errorParse from '../../utils/errorParse';
 import axios from 'axios';
+import { checkRecaptcha } from '../../utils/checkRecaptcha';
 
 export default {
     Mutation: {
@@ -12,21 +13,23 @@ export default {
                 try {
                     await signupSchema.validate(args, { abortEarly: false });
                 } catch (err) {
-                    // err.inner.forEach((el) => {
-                    //     errors[el.path] = el.message;
-                    // });
                     errors = errorParse(err);
-
                     throw new UserInputError('SIGNUP ERROR - VALIDATE', { errors });
                 }
 
-                const { name, email, password, avatarId, avatarUrl } = args;
+                const { name, email, password, recaptcha } = args;
+
+                // check recaptcha
+                const recaptchaValid = await checkRecaptcha(recaptcha);
+                // console.log(recaptchaValid);
+                if (recaptchaValid) {
+                    errors.recaptcha = recaptchaValid;
+                    throw new UserInputError('SIGNUP RECAPTCHA ERROR', { errors });
+                }
 
                 const user = new User({
                     name,
                     email,
-                    avatarId,
-                    avatarUrl,
                 });
 
                 user.setPassword(password);
@@ -34,10 +37,6 @@ export default {
                 try {
                     await user.save();
                 } catch (err) {
-                    //const errors = {};
-                    // const errors = errorParse(err);
-                    // console.log(errors);
-                    // throw new UserInputError('SIGNUP ERROR - EMAIL EXIST', { errors });
                     if (err.errors.email.properties.message) {
                         errors.email = err.errors.email.properties.message;
                     } else {
@@ -67,7 +66,15 @@ export default {
                     errors = errorParse(err);
                     throw new UserInputError('LOGIN ERROR - VALIDATE', { errors });
                 }
-                const { email, password } = args;
+                const { email, password, recaptcha } = args;
+
+                // check recaptcha
+                const recaptchaValid = await checkRecaptcha(recaptcha);
+                // console.log(recaptchaValid);
+                if (recaptchaValid) {
+                    errors.recaptcha = recaptchaValid;
+                    throw new UserInputError('LOGIN RECAPTCHA ERROR', { errors });
+                }
 
                 const user = await User.findOne({ email });
 
@@ -90,17 +97,16 @@ export default {
                 let errors = {};
 
                 const { facebookId, accessToken } = args;
-                console.log('id:', facebookId);
-                console.log('access token:', accessToken);
+                // console.log('id:', facebookId);
+                // console.log('access token:', accessToken);
 
                 // check user login with facebook is existed already
                 const existUser = await User.findOne({ facebookId });
 
                 // if user is existed
-                if (existUser) return existUser.toAuthJSON();
+                // if (existUser) return existUser.toAuthJSON();
 
-                // if user is not existed
-                const url = `https://graph.facebook.com/${facebookId}?fields=id,name,email,picture&access_token=${accessToken}`;
+                const url = `https://graph.facebook.com/${facebookId}?fields=id,name,email,picture.width(150)&access_token=${accessToken}`;
                 const user = await axios.get(url);
 
                 if (!user) {
@@ -108,18 +114,26 @@ export default {
                     throw new UserInputError('LOGIN FACEBOOK ERROR', { errors });
                 }
 
-                console.log('User', user.data);
-                console.log('avatar', user.data.picture);
-
-                const newUser = new User({
+                const userData = {
                     name: user.data.name,
                     email: user.data.email,
                     avatarUrl: user.data.picture.data.url,
                     facebookId,
                     confirmed: true,
-                });
+                };
 
-                console.log(newUser);
+                // if user is existed -> update user infor from facebook
+                if (existUser) {
+                    const updatedUser = await User.findByIdAndUpdate(existUser.id, userData, {
+                        new: true,
+                    });
+
+                    return updatedUser.toAuthJSON();
+                }
+
+                // if user is not existed -> create new user
+
+                const newUser = new User(userData);
 
                 try {
                     await newUser.save();
@@ -148,36 +162,41 @@ export default {
                 let errors = {};
 
                 const { googleId, idToken } = args;
-                console.log('id:', googleId);
-                console.log('id token:', idToken);
+                // console.log('id:', googleId);
+                // console.log('id token:', idToken);
 
                 // check user login with google is existed already
                 const existUser = await User.findOne({ googleId });
 
                 // if user is existed
-                if (existUser) return existUser.toAuthJSON();
+                // if (existUser) return existUser.toAuthJSON();
 
-                // if user is not existed
                 const url = `https://oauth2.googleapis.com/tokeninfo?id_token=${idToken}`;
                 const user = await axios.get(url);
 
-                // if (!user) {
-                //     errors.global = 'Google login failed, please try again.';
-                //     throw new UserInputError('LOGIN GOOGLE ERROR', { errors });
-                // }
+                if (!user) {
+                    errors.global = 'Google login failed, please try again.';
+                    throw new UserInputError('LOGIN GOOGLE ERROR', { errors });
+                }
 
-                console.log('User', user.data);
-                console.log('avatar', user.data.picture);
-
-                const newUser = new User({
+                const userData = {
                     name: user.data.name,
                     email: user.data.email,
                     avatarUrl: user.data.picture,
                     googleId: user.data.sub,
                     confirmed: true,
-                });
+                };
 
-                // console.log(newUser);
+                // if user is existed -> update user info from google
+                if (existUser) {
+                    const updatedUser = await User.findByIdAndUpdate(existUser.id, userData, {
+                        new: true,
+                    });
+                    return updatedUser.toAuthJSON();
+                }
+
+                // if user is not existed -> create new user
+                const newUser = new User(userData);
 
                 try {
                     await newUser.save();
@@ -195,7 +214,6 @@ export default {
 
                 return newUser.toAuthJSON();
             } catch (error) {
-                console.log('AAAAAAAAA', error);
                 return error;
             }
         },
