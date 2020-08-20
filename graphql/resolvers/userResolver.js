@@ -1,5 +1,5 @@
 import User from '../../models/userModel';
-import { signupSchema, loginSchema } from '../schemas';
+import { signupSchema, loginSchema } from '../schemas/userSchema';
 import { UserInputError } from 'apollo-server-express';
 import errorParse from '../../utils/errorParse';
 import axios from 'axios';
@@ -48,7 +48,7 @@ export default {
                     });
                 }
 
-                console.log('Signup Mutation');
+                // console.log('Signup Mutation');
                 return user.toAuthJSON();
             } catch (error) {
                 return error;
@@ -83,7 +83,7 @@ export default {
                     throw new UserInputError('LOGIN ERROR - INVALID CREDENTIALS', { errors });
                 }
 
-                console.log('login successful');
+                // console.log('login successful');
                 return user.toAuthJSON();
             } catch (error) {
                 console.log(error);
@@ -122,17 +122,20 @@ export default {
                     confirmed: true,
                 };
 
+                // console.log('userData', userData);
+                // console.log('Facebook exist user', existUser);
+
                 // if user is existed -> update user infor from facebook
                 if (existUser) {
                     const updatedUser = await User.findByIdAndUpdate(existUser.id, userData, {
                         new: true,
                     });
-
+                    // console.log('update user', updatedUser);
                     return updatedUser.toAuthJSON();
                 }
 
                 // if user is not existed -> create new user
-
+                //userData.email = user.data.email;
                 const newUser = new User(userData);
 
                 try {
@@ -160,7 +163,7 @@ export default {
         loginGoogle: async (_, args) => {
             try {
                 let errors = {};
-
+                console.log('GOGLEEEEEE');
                 const { googleId, idToken } = args;
                 // console.log('id:', googleId);
                 // console.log('id token:', idToken);
@@ -196,6 +199,7 @@ export default {
                 }
 
                 // if user is not existed -> create new user
+                // userData.email = user.data.email;
                 const newUser = new User(userData);
 
                 try {
