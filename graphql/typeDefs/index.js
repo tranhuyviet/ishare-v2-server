@@ -27,7 +27,7 @@ export default gql`
     }
 
     type Query {
-        getPosts: [Post]
+        getPosts: [Post!]
     }
 
     type Mutation {

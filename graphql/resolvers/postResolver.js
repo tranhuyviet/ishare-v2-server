@@ -6,6 +6,30 @@ import { createPostSchema } from '../schemas/postSchema';
 import errorParse from '../../utils/errorParse';
 
 export default {
+    Query: {
+        // GET ALL POST
+        getPosts: async () => {
+            try {
+                const posts = await Post.find()
+                    .sort({ createdAt: -1 })
+                    .populate({
+                        path: 'user',
+                        select: 'name avatarUrl',
+                    })
+                    .exec();
+
+                if (!posts) {
+                    throw new Error('Can not get posts');
+                }
+
+                // console.log(posts);
+                return posts;
+            } catch (error) {
+                return error;
+            }
+        },
+    },
+
     Mutation: {
         // CREATE NEW POST
         createPost: async (_, args, context) => {
