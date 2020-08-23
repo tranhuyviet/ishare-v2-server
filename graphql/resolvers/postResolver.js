@@ -6,17 +6,24 @@ import { createPostSchema } from '../schemas/postSchema';
 import errorParse from '../../utils/errorParse';
 
 export default {
+    Post: {
+        commentCount: (parent) => {
+            return parent.comments.length;
+        },
+    },
     Query: {
         // GET ALL POST
         getPosts: async () => {
             try {
-                const posts = await Post.find()
-                    .sort({ createdAt: -1 })
-                    .populate({
-                        path: 'user',
-                        select: 'name avatarUrl',
-                    })
-                    .exec();
+                const posts = await Post.find().sort({ createdAt: -1 });
+                // .populate({
+                //     path: 'user',
+                //     select: 'name avatarUrl',
+                // }).populate({
+                //     path: 'comments',
+
+                // })
+                // .exec();
 
                 if (!posts) {
                     throw new Error('Can not get posts');
@@ -24,6 +31,33 @@ export default {
 
                 // console.log(posts);
                 return posts;
+            } catch (error) {
+                return error;
+            }
+        },
+
+        // GET POST BY ID
+        getPost: async (_, { postId }) => {
+            try {
+                const post = await Post.findById(postId);
+                // const post = await (
+                //     await Post.findById(postId).populate({
+                //         path: 'comments',
+                //         populate: {
+                //             path: 'user',
+                //             select: 'name avatarUrl',
+                //         },
+                //     })
+                // )
+                //     .populate('user', 'name avatarUrl')
+                //     .execPopulate();
+
+                console.log('getPost', post);
+                if (!post) {
+                    throw new Error('Post not found');
+                }
+
+                return post;
             } catch (error) {
                 return error;
             }
@@ -70,7 +104,7 @@ export default {
                         avatarUrl: user.avatarUrl,
                     },
                 };
-
+                console.log(returnPost);
                 return returnPost;
             } catch (error) {
                 return error;

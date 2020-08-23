@@ -24,10 +24,28 @@ export default gql`
         images: [String!]!
         user: User!
         createdAt: String!
+        comments: [Comment]!
+        likes: [Like]!
+        likeCount: Int!
+        commentCount: Int!
+    }
+
+    type Comment {
+        id: ID!
+        createdAt: String!
+        user: User!
+        comment: String!
+    }
+
+    type Like {
+        id: ID!
+        createdAt: String!
+        user: User!
     }
 
     type Query {
         getPosts: [Post!]
+        getPost(postId: ID!): Post!
     }
 
     type Mutation {
@@ -44,5 +62,8 @@ export default gql`
         loginGoogle(googleId: String, idToken: String!): User!
         # Post
         createPost(content: String!, images: [String!]!): Post!
+        # Comment
+        createComment(postId: ID!, comment: String!): Post!
+        deleteComment(postId: ID!, commentId: ID!): Post!
     }
 `;
