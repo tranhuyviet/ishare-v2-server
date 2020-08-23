@@ -10,20 +10,33 @@ export default {
         commentCount: (parent) => {
             return parent.comments.length;
         },
+        likeCount: (parent) => {
+            return parent.likes.length;
+        },
+        isLiked: (parent, __, context) => {
+            const user = checkAuth(context);
+
+            if (!user) {
+                throw new AuthenticationError('Not authenticated');
+                // return false;
+            }
+
+            const isLike = parent.likes.find(
+                (like) => like.user.id.toString() === user.id.toString()
+            );
+
+            if (isLike) {
+                return true;
+            } else {
+                return false;
+            }
+        },
     },
     Query: {
         // GET ALL POST
         getPosts: async () => {
             try {
                 const posts = await Post.find().sort({ createdAt: -1 });
-                // .populate({
-                //     path: 'user',
-                //     select: 'name avatarUrl',
-                // }).populate({
-                //     path: 'comments',
-
-                // })
-                // .exec();
 
                 if (!posts) {
                     throw new Error('Can not get posts');
@@ -52,7 +65,7 @@ export default {
                 //     .populate('user', 'name avatarUrl')
                 //     .execPopulate();
 
-                console.log('getPost', post);
+                // console.log('getPost', post);
                 if (!post) {
                     throw new Error('Post not found');
                 }

@@ -28,6 +28,7 @@ export default gql`
         likes: [Like]!
         likeCount: Int!
         commentCount: Int!
+        isLiked: Boolean!
     }
 
     type Comment {
@@ -65,5 +66,7 @@ export default gql`
         # Comment
         createComment(postId: ID!, comment: String!): Post!
         deleteComment(postId: ID!, commentId: ID!): Post!
+        # Like
+        likePost(postId: ID!): Post!
     }
 `;

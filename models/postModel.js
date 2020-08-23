@@ -16,12 +16,7 @@ const postSchema = new Schema(
             type: Schema.Types.ObjectId,
             ref: 'User',
         },
-        // comments: [
-        //     {
-        //         type: Schema.Types.ObjectId,
-        //         ref: 'Comment',
-        //     },
-        // ],
+
         comments: [
             {
                 comment: String,
@@ -37,13 +32,14 @@ const postSchema = new Schema(
         ],
         likes: [
             {
+                createdAt: {
+                    type: String,
+                    default: Date.now(),
+                },
                 user: {
                     type: Schema.Types.ObjectId,
                     ref: 'User',
                 },
-            },
-            {
-                timestamps: true,
             },
         ],
     },
@@ -56,13 +52,21 @@ postSchema.pre(/^find/, function (next) {
     this.populate({
         path: 'user',
         select: 'name avatarUrl',
-    }).populate({
-        path: 'comments',
-        populate: {
-            path: 'user',
-            select: 'name avatarUrl',
-        },
-    });
+    })
+        .populate({
+            path: 'comments',
+            populate: {
+                path: 'user',
+                select: 'name avatarUrl',
+            },
+        })
+        .populate({
+            path: 'likes',
+            populate: {
+                path: 'user',
+                select: 'name avatarUrl',
+            },
+        });
 
     next();
 });

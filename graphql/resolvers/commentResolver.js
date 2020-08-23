@@ -1,5 +1,5 @@
 import Post from '../../models/postModel';
-import Comment from '../../models/commentModel';
+
 import checkAuth from '../../utils/checkAuth';
 import { AuthenticationError, UserInputError } from 'apollo-server-express';
 import { commentSchema } from '../schemas/commentSchema';

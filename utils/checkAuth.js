@@ -8,7 +8,6 @@ export default (context) => {
         if (token) {
             try {
                 const user = jwt.verify(token, process.env.JWT_SECRET);
-
                 return user;
             } catch (error) {
                 throw new AuthenticationError('Invalid/Expired token');
