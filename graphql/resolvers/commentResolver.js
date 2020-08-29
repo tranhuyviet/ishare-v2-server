@@ -45,7 +45,7 @@ export default {
 
                 // post.comments.unshift(createdComment.id);
 
-                post.comments.unshift({
+                post.comments.push({
                     comment,
                     user: user.id,
                     createdAt: new Date().toISOString(),
@@ -69,6 +69,36 @@ export default {
                 const returnPost = await Post.findById(postId);
                 console.log('created comment', returnPost);
 
+                return returnPost;
+            } catch (error) {
+                return error;
+            }
+        },
+
+        // DELETE COMMENT
+        deleteComment: async (_, { postId, commentId }, context) => {
+            try {
+                const user = checkAuth(context);
+
+                if (!user) {
+                    throw new AuthenticationError('Not authenticated');
+                }
+
+                const post = await Post.findById(postId);
+
+                if (!post) {
+                    throw new UserInputError('Post not found');
+                }
+
+                const commentIndex = post.comments.findIndex((comment) => comment.id === commentId);
+
+                if (post.comments[commentIndex].user.id !== user.id) {
+                    throw new AuthenticationError('Action not allowed');
+                }
+
+                post.comments.splice(commentIndex, 1);
+                await post.save();
+                const returnPost = await Post.findById(postId);
                 return returnPost;
             } catch (error) {
                 return error;

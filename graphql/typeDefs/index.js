@@ -16,6 +16,9 @@ export default gql`
         createdAt: String
         token: String!
         confirmed: Boolean!
+        numOfPosts: Int!
+        numOfComments: Int!
+        numOfLikes: Int!
     }
 
     type Post {
@@ -45,7 +48,7 @@ export default gql`
     }
 
     type Query {
-        getPosts: [Post!]
+        getPosts(page: Int!): [Post!]
         getPost(postId: ID!): Post!
     }
 

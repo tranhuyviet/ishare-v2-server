@@ -1,4 +1,5 @@
 import User from '../../models/userModel';
+import Post from '../../models/postModel';
 import { signupSchema, loginSchema } from '../schemas/userSchema';
 import { UserInputError } from 'apollo-server-express';
 import errorParse from '../../utils/errorParse';
@@ -6,6 +7,18 @@ import axios from 'axios';
 import { checkRecaptcha } from '../../utils/checkRecaptcha';
 
 export default {
+    User: {
+        numOfPosts: async (parent) => {
+            console.log('Parent id', parent.id);
+            try {
+                const userPosts = await Post.find({ user: parent.id });
+
+                return userPosts.length;
+            } catch (error) {
+                console.log(error);
+            }
+        },
+    },
     Mutation: {
         signup: async (_, args) => {
             try {
@@ -131,6 +144,7 @@ export default {
                         new: true,
                     });
                     // console.log('update user', updatedUser);
+
                     return updatedUser.toAuthJSON();
                 }
 
