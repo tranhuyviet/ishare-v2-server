@@ -24,7 +24,7 @@ export default gql`
     type Post {
         id: ID!
         content: String!
-        images: [String!]!
+        images: [String]!
         user: User!
         createdAt: String!
         comments: [Comment]!
@@ -33,6 +33,11 @@ export default gql`
         commentCount: Int!
         isLiked: Boolean!
     }
+
+    # type Images {
+    #     link: String!
+    #     public_id: String!
+    # }
 
     type Comment {
         id: ID!
@@ -48,7 +53,8 @@ export default gql`
     }
 
     type Query {
-        getPosts(page: Int!): [Post!]
+        # getPosts(page: Int!): [Post!]
+        getPosts: [Post!]!
         getPost(postId: ID!): Post!
     }
 
@@ -66,6 +72,7 @@ export default gql`
         loginGoogle(googleId: String, idToken: String!): User!
         # Post
         createPost(content: String!, images: [String!]!): Post!
+        deletePost(postId: ID!): String!
         # Comment
         createComment(postId: ID!, comment: String!): Post!
         deleteComment(postId: ID!, commentId: ID!): Post!

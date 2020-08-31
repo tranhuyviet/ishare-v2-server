@@ -143,7 +143,7 @@ export default {
                     const updatedUser = await User.findByIdAndUpdate(existUser.id, userData, {
                         new: true,
                     });
-                    // console.log('update user', updatedUser);
+                    console.log('update user', updatedUser.toAuthJSON());
 
                     return updatedUser.toAuthJSON();
                 }

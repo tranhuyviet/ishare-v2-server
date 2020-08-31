@@ -4,6 +4,7 @@ import checkAuth from '../../utils/checkAuth';
 // import { createPostSchema } from '../schemas';
 import { createPostSchema } from '../schemas/postSchema';
 import errorParse from '../../utils/errorParse';
+import { cloudinary } from '../../utils/cloudinary';
 
 export default {
     Post: {
@@ -38,15 +39,16 @@ export default {
     },
     Query: {
         // GET ALL POST
-        getPosts: async (_, args) => {
+        getPosts: async () => {
             try {
-                console.log('GET POSTS...', args);
-                const { page } = args;
+                // console.log('GET POSTS...', args);
+                // const { page } = args;
 
-                const limit = 10;
-                const skip = (page * 1 - 1) * limit;
+                // const limit = 10;
+                // const skip = (page * 1 - 1) * limit;
 
-                const posts = await Post.find().sort({ createdAt: -1 }).skip(skip).limit(limit);
+                // const posts = await Post.find().sort({ createdAt: -1 }).skip(skip).limit(limit);
+                const posts = await Post.find().sort({ createdAt: -1 });
 
                 if (!posts) {
                     throw new Error('Can not get posts');
@@ -108,6 +110,7 @@ export default {
                 }
 
                 const { content, images } = args;
+                console.log('IMAGES', images);
 
                 const newPost = new Post({
                     content,
@@ -136,6 +139,39 @@ export default {
                 const returnPost = await Post.findById(post.id);
                 // console.log(returnPost);
                 return returnPost;
+            } catch (error) {
+                return error;
+            }
+        },
+
+        // DELETE POST
+        deletePost: async (_, { postId }, context) => {
+            try {
+                const user = checkAuth(context);
+
+                if (!user) {
+                    throw new AuthenticationError('Not authenticated');
+                }
+
+                const post = await Post.findById(postId);
+
+                if (!post) {
+                    throw new Error('Can not found post');
+                }
+
+                console.log('DELETE POST', postId);
+
+                // checking permision to delete
+                if (post.user.id === user.id) {
+                    post.images.forEach(async (image) => {
+                        const res = await cloudinary.uploader.destroy(image);
+                        console.log('DELETE IMAGE RES', res);
+                    });
+                    await post.delete();
+                    return 'Post deleted successfully';
+                } else {
+                    throw new AuthenticationError('Action not allowed');
+                }
             } catch (error) {
                 return error;
             }
