@@ -27,7 +27,7 @@ export default {
                 });
 
                 //if liked already -> unlike it
-                console.log('isLike', isLike);
+                // console.log('isLike', isLike);
                 if (isLike) {
                     post.likes = post.likes.filter(
                         (like) => like.user.id.toString() !== user.id.toString()
@@ -41,8 +41,14 @@ export default {
                 }
 
                 await post.save();
+
                 const returnPost = await Post.findById(postId);
-                console.log('created like', returnPost);
+
+                returnPost.commentCount = returnPost.comments.length;
+                returnPost.likeCount = returnPost.likes.length;
+
+                console.log(returnPost);
+
                 return returnPost;
             } catch (error) {
                 return error;

@@ -67,7 +67,8 @@ export default {
                 //     },
                 // };
                 const returnPost = await Post.findById(postId);
-                console.log('created comment', returnPost);
+                returnPost.commentCount = returnPost.comments.length;
+                returnPost.likeCount = returnPost.likes.length;
 
                 return returnPost;
             } catch (error) {
@@ -99,6 +100,8 @@ export default {
                 post.comments.splice(commentIndex, 1);
                 await post.save();
                 const returnPost = await Post.findById(postId);
+                returnPost.commentCount = returnPost.comments.length;
+                returnPost.likeCount = returnPost.likes.length;
                 return returnPost;
             } catch (error) {
                 return error;

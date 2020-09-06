@@ -52,9 +52,15 @@ export default gql`
         user: User!
     }
 
+    enum FilterPostType {
+        NEWEST
+        TOPCOMMENTS
+        TOPLIKES
+    }
+
     type Query {
         # getPosts(page: Int!): [Post!]
-        getPosts: [Post!]!
+        getPosts(type: String!): [Post!]!
         getPost(postId: ID!): Post!
     }
 

@@ -5,28 +5,26 @@ import checkAuth from '../../utils/checkAuth';
 import { createPostSchema } from '../schemas/postSchema';
 import errorParse from '../../utils/errorParse';
 import { cloudinary } from '../../utils/cloudinary';
+import _ from 'lodash';
 
 export default {
     Post: {
-        commentCount: (parent) => {
-            return parent.comments.length;
-        },
-        likeCount: (parent) => {
-            return parent.likes.length;
-        },
+        // commentCount: (parent) => {
+        //     return parent.comments.length;
+        // },
+        // likeCount: (parent) => {
+        //     return parent.likes.length;
+        // },
         isLiked: (parent, __, context) => {
             try {
                 const user = checkAuth(context);
-
                 if (!user) {
                     throw new AuthenticationError('Not authenticated');
                     // return false;
                 }
-
                 const isLike = parent.likes.find(
                     (like) => like.user.id.toString() === user.id.toString()
                 );
-
                 if (isLike) {
                     return true;
                 } else {
@@ -39,7 +37,7 @@ export default {
     },
     Query: {
         // GET ALL POST
-        getPosts: async () => {
+        getPosts: async (parent, args) => {
             try {
                 // console.log('GET POSTS...', args);
                 // const { page } = args;
@@ -48,14 +46,187 @@ export default {
                 // const skip = (page * 1 - 1) * limit;
 
                 // const posts = await Post.find().sort({ createdAt: -1 }).skip(skip).limit(limit);
+
                 const posts = await Post.find().sort({ createdAt: -1 });
 
                 if (!posts) {
                     throw new Error('Can not get posts');
                 }
 
+                let returnPosts = posts.map((post) => {
+                    return {
+                        id: post.id,
+                        content: post.content,
+                        images: post.images,
+                        user: post.user,
+                        createdAt: post.createdAt,
+                        comments: post.comments,
+                        likes: post.likes,
+                        commentCount: post.comments.length,
+                        likeCount: post.likes.length,
+                    };
+                });
+
+                if (args.type === 'TOPCOMMENTS') {
+                    returnPosts = _.sortBy(returnPosts, ['commentCount']).reverse();
+                }
+
+                if (args.type === 'TOPLIKES') {
+                    returnPosts = _.sortBy(returnPosts, ['likeCount']).reverse();
+                }
+
+                // console.log(returnPosts);
+
+                /*
+                const posts = await Post.aggregate([
+                    {
+                        $addFields: {
+                            commentCount: { $size: '$comments' },
+                            likeCount: { $size: '$likes' },
+                        },
+                    },
+                    // lookup -> populate user of post
+                    {
+                        // $lookup: {
+                        //     from: 'users',
+                        //     localField: 'user',
+                        //     foreignField: '_id',
+                        //     as: 'user',
+                        // },
+                        $lookup: {
+                            from: 'users',
+                            let: { userId: '$user' },
+                            pipeline: [
+                                {
+                                    $match: {
+                                        $expr: {
+                                            $eq: ['$_id', '$$userId'],
+                                        },
+                                    },
+                                },
+                                {
+                                    $project: {
+                                        _id: 1,
+                                        name: 1,
+                                        avatarUrl: 1,
+                                    },
+                                },
+                            ],
+                            as: 'user',
+                        },
+                    },
+                    {
+                        $unwind: '$user',
+                    },
+
+                    // lookup -> populate user of comment
+                    {
+                        $unwind: '$comments',
+                    },
+                    {
+                        $lookup: {
+                            from: 'users',
+                            let: { userIdComment: '$comments.user' },
+                            pipeline: [
+                                {
+                                    $match: {
+                                        $expr: {
+                                            $eq: ['$_id', '$$userIdComment'],
+                                        },
+                                    },
+                                },
+                            ],
+                            as: 'comments.user',
+                        },
+                    },
+                    {
+                        $unwind: '$comments.user',
+                    },
+                    {
+                        $group: {
+                            _id: '$_id',
+                            content: { $first: '$content' },
+                            images: { $first: '$images' },
+                            user: { $first: '$user' },
+                            createdAt: { $first: '$createdAt' },
+                            comments: { $push: '$comments' },
+                            commentCount: { $first: '$commentCount' },
+                        },
+                    },
+                    // lookup -> populate user of like
+                    {
+                        $unwind: '$likes',
+                    },
+
+                    {
+                        $lookup: {
+                            from: 'users',
+                            let: { userIdLike: '$likes.user' },
+                            pipeline: [
+                                {
+                                    $match: {
+                                        $expr: {
+                                            $eq: ['$_id', '$$userIdLike'],
+                                        },
+                                    },
+                                },
+                            ],
+                            as: 'likes.user',
+                        },
+                    },
+                    {
+                        $unwind: '$likes.user',
+                    },
+
+                    {
+                        $group: {
+                            _id: '$_id',
+                            content: { $first: '$content' },
+                            images: { $first: '$images' },
+                            user: { $first: '$user' },
+                            createdAt: { $first: '$createdAt' },
+                            comments: { $push: '$comments' },
+                            likes: { $push: '$likes' },
+                            commentCount: { $first: '$commentCount' },
+                            likeCount: { $first: '$likeCount' },
+                        },
+                    },
+
+                    {
+                        $project: {
+                            content: 1,
+                            images: 1,
+                            createdAt: 1,
+                            comments: 1,
+                            likes: 1,
+                            likeCount: 1,
+                            commentCount: 1,
+                            // likeCount: { $size: '$likes' },
+                            // commentCount: { $size: '$comments' },
+                            user: 1,
+
+                            // 'user._id': 1,
+                            // 'user.name': 1,
+                            // 'user.avatarUrl': 1,
+                            // 'comments._id': 1,
+                            // 'comments.comment': 1,
+                            // 'comments.createdAt': 1,
+                            // 'comments.user._id': 1,
+                            // 'comments.user.name': 1,
+                            // 'comments.user.avatarUrl': 1,
+                        },
+                    },
+
+                    {
+                        $sort: { commentCount: -1 },
+                    },
+                ]);
+                */
+
                 // console.log(posts);
-                return posts;
+                // console.dir(posts, { depth: null });
+
+                return returnPosts;
             } catch (error) {
                 return error;
             }
@@ -82,6 +253,8 @@ export default {
                     throw new Error('Post not found');
                 }
 
+                post.commentCount = post.comments.length;
+                post.likeCount = post.likes.length;
                 return post;
             } catch (error) {
                 return error;
@@ -137,6 +310,8 @@ export default {
                 // };
                 // console.log(returnPost);
                 const returnPost = await Post.findById(post.id);
+                returnPost.commentCount = returnPost.comments.length;
+                returnPost.likeCount = returnPost.likes.length;
                 // console.log(returnPost);
                 return returnPost;
             } catch (error) {
