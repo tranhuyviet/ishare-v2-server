@@ -62,6 +62,7 @@ export default gql`
         # getPosts(page: Int!): [Post!]
         getPosts(type: String!): [Post!]!
         getPost(postId: ID!): Post!
+        getPostsByUser(userId: ID): [Post!]
     }
 
     type Mutation {

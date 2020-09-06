@@ -260,6 +260,20 @@ export default {
                 return error;
             }
         },
+
+        // GET POSTS BY USER ID
+        getPostsByUser: async (parent, { userId }) => {
+            try {
+                const posts = await Post.find({ user: userId });
+                if (!posts) {
+                    throw new Error('Posts by user not found');
+                }
+
+                return posts;
+            } catch (error) {
+                return error;
+            }
+        },
     },
 
     Mutation: {
@@ -292,27 +306,12 @@ export default {
                 });
 
                 const post = await newPost.save();
-                // const returnPost = {
-                //     id: post.id,
-                //     content: post.content,
-                //     images: post.images,
-                //     createdAt: post.createdAt,
-                //     user: {
-                //         id: user.id,
-                //         name: user.name,
-                //         avatarUrl: user.avatarUrl,
-                //     },
-                //     comments: post.comments,
-                //     likes: post.likes,
-                //     commentCount: 0,
-                //     likeCount: 0,
-                //     isLiked: false,
-                // };
-                // console.log(returnPost);
+
                 const returnPost = await Post.findById(post.id);
                 returnPost.commentCount = returnPost.comments.length;
                 returnPost.likeCount = returnPost.likes.length;
-                // console.log(returnPost);
+                // returnPost.postCount = await returnPost.postCount(user.id);
+                // console.log('post count', returnPost);
                 return returnPost;
             } catch (error) {
                 return error;

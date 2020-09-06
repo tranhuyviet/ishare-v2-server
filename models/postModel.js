@@ -48,18 +48,9 @@ const postSchema = new Schema(
     }
 );
 
-postSchema.methods.countFun = function countFun() {
-    return {
-        // id: this.id,
-        // content: this.content,
-        // images: this.images,
-        // user: this.user,
-        // createdAt: this.createdAt,
-        // comments: this.comments,
-        // likes: this.likes,
-        commentCount: this.comments.length,
-        likeCount: this.likes.length,
-    };
+postSchema.methods.postCount = async function postCount(userId) {
+    const posts = await Post.find({ user: userId });
+    return posts.length;
 };
 
 postSchema.pre(/^find/, function (next) {
