@@ -22,7 +22,7 @@ export default {
                 // console.log(post, user.id);
 
                 const isLike = post.likes.find((like) => {
-                    console.log(like.user.id.toString(), user.id.toString());
+                    // console.log(like.user.id.toString(), user.id.toString());
                     return like.user.id.toString() === user.id.toString();
                 });
 
@@ -47,7 +47,7 @@ export default {
                 returnPost.commentCount = returnPost.comments.length;
                 returnPost.likeCount = returnPost.likes.length;
 
-                console.log(returnPost);
+                // console.log(returnPost);
 
                 return returnPost;
             } catch (error) {

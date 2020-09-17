@@ -46,7 +46,7 @@ export default {
                 // const skip = (page * 1 - 1) * limit;
 
                 // const posts = await Post.find().sort({ createdAt: -1 }).skip(skip).limit(limit);
-
+                // console.log('userId', args.userId);
                 const posts = await Post.find().sort({ createdAt: -1 });
 
                 if (!posts) {
@@ -75,7 +75,9 @@ export default {
                     returnPosts = _.sortBy(returnPosts, ['likeCount']).reverse();
                 }
 
-                // console.log(returnPosts);
+                if (args.userId) {
+                    returnPosts = _.filter(returnPosts, ['user.id', args.userId]);
+                }
 
                 /*
                 const posts = await Post.aggregate([
@@ -269,7 +271,20 @@ export default {
                     throw new Error('Posts by user not found');
                 }
 
-                return posts;
+                let returnPosts = posts.map((post) => {
+                    return {
+                        id: post.id,
+                        content: post.content,
+                        images: post.images,
+                        user: post.user,
+                        createdAt: post.createdAt,
+                        comments: post.comments,
+                        likes: post.likes,
+                        commentCount: post.comments.length,
+                        likeCount: post.likes.length,
+                    };
+                });
+                return returnPosts;
             } catch (error) {
                 return error;
             }
@@ -280,7 +295,7 @@ export default {
         // CREATE NEW POST
         createPost: async (_, args, context) => {
             try {
-                console.log('create post....', args);
+                // console.log('create post....', args);
                 let errors = {};
                 const user = checkAuth(context);
 
@@ -297,7 +312,7 @@ export default {
                 }
 
                 const { content, images } = args;
-                console.log('IMAGES', images);
+                // console.log('IMAGES', images);
 
                 const newPost = new Post({
                     content,
@@ -333,13 +348,13 @@ export default {
                     throw new Error('Can not found post');
                 }
 
-                console.log('DELETE POST', postId);
+                // console.log('DELETE POST', postId);
 
                 // checking permision to delete
                 if (post.user.id === user.id) {
                     post.images.forEach(async (image) => {
                         const res = await cloudinary.uploader.destroy(image);
-                        console.log('DELETE IMAGE RES', res);
+                        //  console.log('DELETE IMAGE RES', res);
                     });
                     await post.delete();
                     return 'Post deleted successfully';

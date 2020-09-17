@@ -60,7 +60,7 @@ export default gql`
 
     type Query {
         # getPosts(page: Int!): [Post!]
-        getPosts(type: String!): [Post!]!
+        getPosts(type: String!, userId: ID): [Post!]!
         getPost(postId: ID!): Post!
         getPostsByUser(userId: ID): [Post!]
     }

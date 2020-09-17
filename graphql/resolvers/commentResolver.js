@@ -9,7 +9,7 @@ export default {
     Mutation: {
         // CREATE COMMENT
         createComment: async (_, args, context) => {
-            console.log('comment submit...', args);
+            // console.log('comment submit...', args);
             try {
                 let errors = {};
                 const user = checkAuth(context);

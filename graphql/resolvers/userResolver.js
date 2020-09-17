@@ -9,7 +9,7 @@ import { checkRecaptcha } from '../../utils/checkRecaptcha';
 export default {
     User: {
         numOfPosts: async (parent) => {
-            console.log('Parent id', parent.id);
+            // console.log('Parent id', parent.id);
             try {
                 const userPosts = await Post.find({ user: parent.id });
 
@@ -71,7 +71,7 @@ export default {
         //LOGIN
         login: async (_, args) => {
             try {
-                console.log('login...');
+                // console.log('login...');
                 let errors = {};
                 try {
                     await loginSchema.validate(args, { abortEarly: false });
@@ -143,7 +143,7 @@ export default {
                     const updatedUser = await User.findByIdAndUpdate(existUser.id, userData, {
                         new: true,
                     });
-                    console.log('update user', updatedUser.toAuthJSON());
+                    // console.log('update user', updatedUser.toAuthJSON());
 
                     return updatedUser.toAuthJSON();
                 }
@@ -177,7 +177,7 @@ export default {
         loginGoogle: async (_, args) => {
             try {
                 let errors = {};
-                console.log('GOGLEEEEEE');
+                // console.log('GOGLEEEEEE');
                 const { googleId, idToken } = args;
                 // console.log('id:', googleId);
                 // console.log('id token:', idToken);
