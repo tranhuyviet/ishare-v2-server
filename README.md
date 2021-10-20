@@ -10,4 +10,4 @@ The main idea of the application is for people to share their own photos. Users 
 # Technologies:
 Nodejs, Express, Apollo Server, Graphql, Mongoose, Cloudinary, Jsonwebtoken, Nodemailer, Bcrypt, Yup
 
-# Frontend()
+# Frontend(https://github.com/tranhuyviet/ishare-v2-client)
